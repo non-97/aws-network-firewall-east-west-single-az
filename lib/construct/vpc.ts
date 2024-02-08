@@ -76,7 +76,6 @@ export class Vpc extends Construct {
       return;
     }
 
-    console.log("aaaa");
     this.vpc
       .selectSubnets({
         subnetGroupName: "Egress",

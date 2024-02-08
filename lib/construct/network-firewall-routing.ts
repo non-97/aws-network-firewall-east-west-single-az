@@ -54,7 +54,6 @@ export class NetworkFirewallRouting extends Construct {
         );
       });
 
-    // test
     try {
       if (!props.vpc.selectSubnets({ subnetGroupName: "Egress" })) {
         return;
