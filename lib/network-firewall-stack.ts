@@ -50,6 +50,25 @@ export class NetworkFirewallStack extends cdk.Stack {
       applianceModeSupport: "disable",
     });
 
+    const vpcC = new Vpc(this, "VpcC", {
+      vpcCidr: "10.1.3.0/24",
+      natGateways: 0,
+      subnetConfiguration: [
+        {
+          name: "Public",
+          subnetType: cdk.aws_ec2.SubnetType.PUBLIC,
+          cidrMask: 27,
+        },
+        {
+          name: "Tgw",
+          subnetType: cdk.aws_ec2.SubnetType.PRIVATE_ISOLATED,
+          cidrMask: 27,
+        },
+      ],
+      tgwId: tgw.tgwId,
+      applianceModeSupport: "disable",
+    });
+
     const inspectionVpc = new Vpc(this, "InspectionVpc", {
       vpcCidr: "10.10.1.0/24",
       natGateways: 0,
@@ -70,15 +89,13 @@ export class NetworkFirewallStack extends cdk.Stack {
     });
 
     // Transit Gateway route table
-    new TgwRouting(this, "TgwRouteTableVpcA", {
+    new TgwRouting(this, "TgwRouteTableSpokeVpc", {
       tgwId: tgw.tgwId,
-      associateTgwAttachmentIds: [vpcA.tgwAttachment.ref],
-      propagationTgwAttachmentIds: [],
-      inspectionVpcTgwAttachmentId: inspectionVpc.tgwAttachment.ref,
-    });
-    new TgwRouting(this, "TgwRouteTableVpcB", {
-      tgwId: tgw.tgwId,
-      associateTgwAttachmentIds: [vpcB.tgwAttachment.ref],
+      associateTgwAttachmentIds: [
+        vpcA.tgwAttachment.ref,
+        vpcB.tgwAttachment.ref,
+        vpcC.tgwAttachment.ref,
+      ],
       propagationTgwAttachmentIds: [],
       inspectionVpcTgwAttachmentId: inspectionVpc.tgwAttachment.ref,
     });
@@ -88,6 +105,7 @@ export class NetworkFirewallStack extends cdk.Stack {
       propagationTgwAttachmentIds: [
         vpcA.tgwAttachment.ref,
         vpcB.tgwAttachment.ref,
+        vpcC.tgwAttachment.ref,
       ],
     });
 
@@ -96,17 +114,13 @@ export class NetworkFirewallStack extends cdk.Stack {
       vpc: vpcA.vpc,
       availabilityZones: [vpcA.vpc.availabilityZones[0]],
     });
-    new Ec2Instance(this, "Ec2InstanceA2", {
-      vpc: vpcA.vpc,
-      availabilityZones: [vpcA.vpc.availabilityZones[1]],
-    });
     new Ec2Instance(this, "Ec2InstanceB1", {
       vpc: vpcB.vpc,
       availabilityZones: [vpcB.vpc.availabilityZones[0]],
     });
-    new Ec2Instance(this, "Ec2InstanceB2", {
-      vpc: vpcB.vpc,
-      availabilityZones: [vpcB.vpc.availabilityZones[1]],
+    new Ec2Instance(this, "Ec2InstanceC1", {
+      vpc: vpcC.vpc,
+      availabilityZones: [vpcB.vpc.availabilityZones[0]],
     });
 
     // Network Firewall

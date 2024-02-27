@@ -22,7 +22,7 @@ export class Vpc extends Construct {
       enableDnsHostnames: true,
       enableDnsSupport: true,
       natGateways: props.natGateways,
-      maxAzs: 2,
+      maxAzs: 1,
       subnetConfiguration: props.subnetConfiguration,
     });
 
